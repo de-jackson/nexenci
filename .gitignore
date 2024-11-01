@@ -1,18 +1,186 @@
-*/config/development
-*/logs/log-*.php
-!*/logs/index.html
-*/cache/*
-!system/cache/*
-!*/cache/index.html
-!*/cache/.htaccess
+#-------------------------
+# Operating Specific Junk Files
+#-------------------------
 
+# OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# OS X Thumbnails
+._*
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Linux
+*~
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+#-------------------------
+# Environment Files
+#-------------------------
+# These should never be under version control,
+# as it poses a security risk.
+.env
+.vagrant
+Vagrantfile
+
+#-------------------------
+# Temporary Files
+#-------------------------
+writable/cache/*
+!writable/cache/index.html
+
+writable/logs/*
+!writable/logs/index.html
+
+writable/session/*
+!writable/session/index.html
+
+writable/uploads/*
+!writable/uploads/index.html
+
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+
+php_errors.log
+
+#-------------------------
+# User Guide Temp Files
+#-------------------------
 user_guide_src/build/*
 user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 
-#codeigniter 3
-application/logs/*
-!application/logs/index.html
-!application/logs/.htaccess
+#-------------------------
+# Test Files
+#-------------------------
+tests/coverage*
+
+# Don't save phpunit under version control.
+phpunit
+
+#-------------------------
+# Composer
+#-------------------------
+
+# Ignore root vendor directory
 /vendor/
+
+#-------------------------
+# IDE / Development Files
+#-------------------------
+
+# Modules Testing
+_modules/*
+
+# phpenv local config
+.php-version
+
+# Jetbrains editors (PHPStorm, etc)
+.idea/
+*.iml
+
+# Netbeans
+nbproject/
+/build/
+nbbuild/
+# dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+.nb-gradle/
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+.phpintel
+/api/
+
+# Visual Studio Code
+.vscode/
+
+/results/
+/phpunit*.xml
+/.phpunit.*.cache
+
+
+#-------------------------
+# Uploaded Files
+#-------------------------
+public/uploads/users/*
+!public/uploads/users/nophoto.jpg
+!public/uploads/users/doc.jpg
+!public/uploads/users/sign.png
+
+public/uploads/logo/*
+!public/uploads/logo/background.jpg
+!public/uploads/logo/default.png
+
+public/uploads/clients/*
+public/uploads/clients/passports/*
+!public/uploads/clients/passports/index.html
+public/uploads/clients/ids/front/*
+!public/uploads/clients/ids/front/index.html
+public/uploads/clients/ids/back/*
+!public/uploads/clients/ids/back/index.html
+public/uploads/clients/signitures/*
+!public/uploads/clients/signitures/index.html
+
+public/uploads/staffs/admins/*
+public/uploads/staffs/admins/passports/*
+!public/uploads/staffs/admins/passports/index.html
+public/uploads/staffs/admins/ids/front/*
+!public/uploads/staffs/admins/ids/front/index.html
+public/uploads/staffs/admins/ids/back/*
+!public/uploads/staffs/admins/ids/back/index.html
+public/uploads/staffs/admins/signitures/*
+!public/uploads/staffs/admins/signitures/index.html
+
+public/uploads/staffs/employees/*
+public/uploads/staffs/employees/passports/*
+!public/uploads/staffs/employees/passports/index.html
+public/uploads/staffs/employees/ids/front/*
+!public/uploads/staffs/employees/ids/front/index.html
+public/uploads/staffs/employees/ids/back/*
+!public/uploads/staffs/employees/ids/back/index.html
+public/uploads/staffs/employees/signitures/*
+!public/uploads/staffs/employees/signitures/index.html
+
+public/uploads/applications/*
+public/uploads/applications/collaterals/*
+!public/uploads/applications/collaterals/index.html
+public/uploads/applications/expense/*
+!public/uploads/applications/expense/index.html
+public/uploads/applications/income/*
+!public/uploads/applications/income/index.html
+
+public/uploads/mailings/attachments/*
+!public/uploads/mailings/attachments/index.html
+
+public/uploads/posts/*
+!public/uploads/posts/index.html
