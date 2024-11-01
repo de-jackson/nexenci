@@ -1,0 +1,932 @@
+// dataTables buttons config
+var buttonsConfig = [];
+if (userPermissions.includes('export' + title) || userPermissions === '"all"') {
+    buttonsConfig.push(
+        {
+            extend: 'excel',
+            className: 'btn btn-sm btn-success',
+            titleAttr: 'Export ' + title + ' To Excel',
+            text: '<i class="fas fa-file-excel"></i>',
+            filename: 'Products ' + title + ' Information',
+            extension: '.xlsx',
+        },
+        {
+            extend: 'pdf',
+            className: 'btn btn-sm btn-danger',
+            titleAttr: 'Export Products ' + title + ' To PDF',
+            text: '<i class="fas fa-file-pdf"></i>',
+            filename: 'Products ' + title + ' Information',
+            extension: '.pdf',
+        },
+        {
+            extend: 'csv',
+            className: 'btn btn-sm btn-success',
+            titleAttr: 'Export Products ' + title + ' To CSV',
+            text: '<i class="fas fa-file-csv"></i>',
+            filename: 'Products ' + title + ' Information',
+            extension: '.csv',
+        },
+        {
+            extend: 'copy',
+            className: 'btn btn-sm btn-warning',
+            titleAttr: 'Copy Products ' + title + ' Information',
+            text: '<i class="fas fa-copy"></i>',
+        },
+        {
+            extend: 'print',
+            title: "<h3 class='text-center text-bold'>" + businessName + "</h3><h4 class='text-center text-bold'>Products " + title + " Information</h4><h5 class='text-center'>Printed On " + new Date().getHours() + " : " + new Date().getMinutes() + " " + new Date().toDateString() + "</h5>",
+            customize: function (win) {
+                $(win.document.body)
+                    .css('font-size', '10pt')
+                    .css('font-family', 'calibri')
+                    .prepend(
+                        '<img src="' + logo + '" style="position:absolute; top:0; left:0;width:100px;height:100px;" />'
+                    );
+                $(win.document.body).find('table')
+                    .addClass('compact')
+                    .css('font-size', 'inherit');
+                // Replace the page title with the actual page title
+                $(win.document.head).find('title').text(title);
+            },
+
+            className: 'btn btn-sm btn-primary',
+            titleAttr: 'Print Products ' + title + ' Information',
+            text: '<i class="fa fa-print"></i>',
+            filename: 'Products ' + title + ' Information'
+        }
+    );
+}
+
+$(function () {
+    // get the running branches
+    selectBranch(branch_id);
+    // get client years
+    yearsInStaffsTable()
+    // gender
+    generateGender();
+    // load account status
+    generateStatus();
+    loadLoanApplicationLevels()
+    loadLoanApplicationActions()
+    loadLoanApplicationStatus()
+    // load the staff officer
+    generateStaff();
+    // JS data objects
+    var disbursed = {
+        year: "",
+        start_date: "",
+        end_date: "",
+        gender: "",
+        account_no: "",
+        others: "",
+        client_account_status: "",
+        client_name: "",
+        application_code: "",
+        branch_id: "",
+        staff_id: "",
+        application_level: "",
+        application_action: "",
+        application_status: "",
+        start_amount_applied: "",
+        end_amount_applied: "",
+    };
+
+    // JS data object
+    var approved = {
+        year: "",
+        start_date: "",
+        end_date: "",
+        gender: "",
+        account_no: "",
+        others: "",
+        client_account_status: "",
+        client_name: "",
+        application_code: "",
+        branch_id: "",
+        staff_id: "",
+        application_level: "",
+        application_action: "",
+        application_status: "",
+        start_amount_applied: "",
+        end_amount_applied: "",
+    };
+
+    // JS loan applications data object
+    var applications = {
+        year: "",
+        start_date: "",
+        end_date: "",
+        gender: "",
+        account_no: "",
+        others: "",
+        client_account_status: "",
+        client_name: "",
+        application_code: "",
+        branch_id: "",
+        staff_id: "",
+        application_level: "",
+        application_action: "",
+        application_status: "",
+        start_amount_applied: "",
+        end_amount_applied: "",
+    };
+
+    // auto load the loan applications table report
+    searchLoanApplications();
+
+    // auto load the loan applications chart
+    loanApplicationsChartsReport(disbursed, approved, applications);
+
+});
+
+function loanApplicationsChartsReport(disbursed, approved, applications) {
+    /* ChartJS
+     * -------
+     * Here we will create a few charts using ChartJS
+     */
+    var ticksStyle = {
+        // fontColor: '#495057',
+        fontStyle: "bold",
+    };
+
+    // Fetch all the keys(variables) from the object
+    var disbursedKeys = Object.keys(disbursed);
+
+    //console.log(disbursedKeys) // [application_status, year, start_date etc]
+    // Iterate over each key to update application status to disbursed
+    disbursedKeys.forEach((disbursedElement) => {
+        // check whether the element is application_status to update its value to disbursed
+        if (disbursedElement == "application_status") {
+            disbursed[disbursedElement] = "disbursed";
+        }
+    });
+
+    var disbursedApplications = disbursed;
+
+    // Fetch all the keys(variables) from the object
+    var approvedKeys = Object.keys(approved);
+
+    //console.log(approvedKeys) // [application_status, year, start_date etc]
+
+    // Iterate over each key to update application status to approved
+    approvedKeys.forEach((approvedElement) => {
+        // check whether the element is application_status to update its value to approved
+        if (approvedElement == "application_status") {
+            approved[approvedElement] = "approved";
+        }
+    });
+
+    var approvedApplications = approved;
+
+    // Fetch all the keys(variables) from the object
+    var loanApplicationKeys = Object.keys(applications);
+
+    //console.log(loanApplicationKeys) // [application_status, year, start_date etc]
+
+    // Iterate over each key to update application status to approved
+    loanApplicationKeys.forEach((loanApplicationElement) => {
+        // check whether the element is application_status to update its value to approved
+        if (loanApplicationElement == "application_status") {
+            applications[loanApplicationElement] = "applications";
+        }
+    });
+
+    var totalLoanApplications = applications;
+
+    /* area chart */
+    var areaOptions = {
+        series: [{
+            name: 'Approved',
+            data: monthlyTotalLoanApplication(approvedApplications)
+        }, {
+            name: 'Disbursed',
+            data: monthlyTotalLoanApplication(disbursedApplications),
+        }, {
+            name: 'Total Loan Applications',
+            data: monthlyTotalLoanApplication(totalLoanApplications),
+        }],
+        chart: {
+            height: 320,
+            type: 'area'
+        },
+        colors: ["#23b7e5", "#f5b849", "#845adf"],
+        dataLabels: {
+            enabled: false
+        },
+        title: {
+            text: 'Monthly Loan Applications Report - Area Chart',
+            align: 'left',
+            style: {
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: '#8c9097'
+            },
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        grid: {
+            borderColor: '#f2f5f7',
+        },
+        xaxis: {
+            // type: 'datetime',
+            categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"],
+            title: {
+                text: 'Months',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                show: true,
+                style: {
+                    colors: "#8c9097",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cssClass: 'apexcharts-xaxis-label',
+                },
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Number of Loan Applications',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                show: true,
+                style: {
+                    colors: "#8c9097",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cssClass: 'apexcharts-xaxis-label',
+                },
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return val
+                }
+            },
+        },
+        legend: {
+            position: 'top',
+            style: {
+                color: "#8c9097",
+            }
+        },
+    };
+    $('#area-spline').empty();
+    var chart = new ApexCharts(document.querySelector("#area-spline"), areaOptions);
+    chart.render();
+
+    /* line chart */
+    var lineOptions = {
+        series: [{
+            name: 'Approved',
+            data: monthlyTotalLoanApplication(approvedApplications)
+        }, {
+            name: 'Disbursed',
+            data: monthlyTotalLoanApplication(disbursedApplications),
+        }, {
+            name: 'Total Loan Applications',
+            data: monthlyTotalLoanApplication(totalLoanApplications),
+        }],
+        chart: {
+            height: 320,
+            type: 'line',
+            zoom: {
+                enabled: false
+            },
+            animations: {
+                enabled: false
+            }
+        },
+        grid: {
+            borderColor: '#f2f5f7',
+        },
+        stroke: {
+            width: [3, 3, 2],
+            curve: 'straight'
+        },
+        colors: ["#23b7e5", "#f5b849", "#845adf"],
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"],
+        title: {
+            text: 'Monthly Loan Applications Report - Line Graph',
+            align: 'left',
+            style: {
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: '#8c9097'
+            },
+        },
+        xaxis: {
+            title: {
+                text: 'Months',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                show: true,
+                style: {
+                    colors: "#8c9097",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cssClass: 'apexcharts-xaxis-label',
+                },
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Number of Loan Applications',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                show: true,
+                style: {
+                    colors: "#8c9097",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cssClass: 'apexcharts-yaxis-label',
+                },
+            }
+        },
+        legend: {
+            position: 'top',
+            style: {
+                color: "#8c9097",
+            }
+        },
+    };
+    $('#line-chart').empty();
+    var chart = new ApexCharts(document.querySelector("#line-chart"), lineOptions);
+    chart.render();
+
+    /* column chart  */
+    var columnOptions = {
+        series: [{
+            name: 'Approved',
+            data: monthlyTotalLoanApplication(approvedApplications)
+        }, {
+            name: 'Disbursed',
+            data: monthlyTotalLoanApplication(disbursedApplications),
+        }, {
+            name: 'Total Number of Loan Applications',
+            data: monthlyTotalLoanApplication(totalLoanApplications),
+        }],
+        chart: {
+            height: 320,
+            type: 'bar',
+        },
+        grid: {
+            borderColor: '#f2f5f7',
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 10,
+                dataLabels: {
+                    position: 'top', // top, center, bottom
+                },
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+                return val;
+            },
+            offsetY: -20,
+            style: {
+                fontSize: '12px',
+                colors: ["#8c9097"]
+            }
+        },
+        colors: ["#23b7e5", "#f5b849", "#845adf"],
+        title: {
+            text: 'Monthly Loan Applications Report - Column Chart',
+            align: 'left',
+            style: {
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: '#8c9097'
+            },
+        },
+        xaxis: {
+            categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+            position: 'bottom',
+            axisBorder: {
+                show: false
+            },
+            axisTicks: {
+                show: false
+            },
+            crosshairs: {
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        colorFrom: '#D8E3F0',
+                        colorTo: '#BED1E6',
+                        stops: [0, 100],
+                        opacityFrom: 0.4,
+                        opacityTo: 0.5,
+                    }
+                }
+            },
+            tooltip: {
+                enabled: true,
+            },
+            title: {
+                text: 'Months',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                show: true,
+                style: {
+                    colors: "#8c9097",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cssClass: 'apexcharts-xaxis-label',
+                },
+            }
+        },
+        yaxis: {
+            axisBorder: {
+                show: false
+            },
+            axisTicks: {
+                show: false,
+            },
+            title: {
+                text: 'Number of Loan Applications',
+                style: {
+                    color: "#8c9097",
+                }
+            },
+            labels: {
+                // show: false,
+                formatter: function (val) {
+                    return val;
+                }
+            }
+        },
+        legend: {
+            position: 'top',
+            style: {
+                color: "#8c9097",
+            }
+        },
+    };
+    $('#column-chart').empty();
+    var chart = new ApexCharts(document.querySelector("#column-chart"), columnOptions);
+    chart.render();
+
+    /* radar chart  */
+    var radarOptions = {
+        series: [{
+            name: 'Approved',
+            data: monthlyTotalLoanApplication(approvedApplications)
+        }, {
+            name: 'Disbursed',
+            data: monthlyTotalLoanApplication(disbursedApplications),
+        }, {
+            name: 'Total Number of Loan Applications',
+            data: monthlyTotalLoanApplication(totalLoanApplications),
+        }],
+        chart: {
+            height: 320,
+            type: 'radar',
+            dropShadow: {
+                enabled: true,
+                blur: 1,
+                left: 1,
+                top: 1
+            }
+        },
+        title: {
+            text: 'Monthly Total Loan Applications Report - Radar Chart',
+            align: 'left',
+            style: {
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: '#8c9097'
+            },
+        },
+        colors: ["#23b7e5", "#f5b849", "#845adf"],
+        stroke: {
+            width: 2
+        },
+        fill: {
+            opacity: 0.1
+        },
+        markers: {
+            size: 0
+        },
+        xaxis: {
+            categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
+        },
+        yaxis: {
+            labels: {
+                show: true,
+                formatter: function (val) {
+                    return val;
+                    // return val.toFixed(2);
+                }
+            }
+        },
+        markers: {
+            size: 3,
+            colors: ['#fff'],
+            strokeColor: '#32a83c',
+            strokeWidth: 2,
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return val
+                }
+            },
+        },
+        legend: {
+            position: 'top',
+            style: {
+                color: "#8c9097",
+            }
+        },
+    };
+
+    $('#radar-chart').empty();
+    var chart = new ApexCharts(document.querySelector("#radar-chart"), radarOptions);
+    chart.render();
+}
+
+function yearsInStaffsTable() {
+    $.ajax({
+        url: "/client/reports/types/loanapplicationyears",
+        type: "GET",
+        dataType: "JSON",
+        success: function (data) {
+            $("select#year").html('<option value="">-- Select --</option>');
+            if (data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    $("<option />").val(data[i]).text(data[i]).appendTo($("select#year"));
+                }
+            } else {
+                $("select#year").html('<option value="">No Year</option>');
+            }
+        },
+        error: function (err) {
+            $("select#year").html('<option value="">Error Occured</option>');
+        },
+    });
+}
+
+function loadLoanApplicationLevels() {
+    $.ajax({
+        url: "/client/reports/types/loanapplicationlevels",
+        type: "POST",
+        dataType: "JSON",
+        success: function (data) {
+            $("select#application_level").html('<option value="">Select Application Level</option>');
+            // convert object to key's array
+            const keys = Object.keys(data);
+            if (keys.length > 0) {
+                for (let index in keys) {
+                    $("<option />").val(keys[index]).text(keys[index]).appendTo($("select#application_level"));
+                }
+            } else {
+                $("select#application_level").html('<option value="">No Application Level</option>');
+            }
+        },
+        error: function (err) {
+            $("select#application_level").html('<option value="">Error Occured</option>');
+        },
+    });
+}
+
+function loadLoanApplicationActions() {
+    $.ajax({
+        url: "/client/reports/types/loanapplicationactions",
+        type: "POST",
+        dataType: "JSON",
+        success: function (data) {
+            $("select#application_action").html('<option value="">Select Application Action</option>');
+            // convert object to key's array
+            const keys = Object.keys(data);
+            if (keys.length > 0) {
+                for (let index in keys) {
+                    $("<option />").val(keys[index]).text(keys[index]).appendTo($("select#application_action"));
+                }
+            } else {
+                $("select#application_action").html('<option value="">No Application Action</option>');
+            }
+        },
+        error: function (err) {
+            $("select#application_action").html('<option value="">Error Occured</option>');
+        },
+    });
+}
+
+function loadLoanApplicationStatus() {
+    $.ajax({
+        url: "/client/reports/types/loanapplicationstatus",
+        type: "POST",
+        dataType: "JSON",
+        success: function (data) {
+            $("select#application_status").html('<option value="">Select Application Status</option>');
+            // convert object to key's array
+            const keys = Object.keys(data);
+            if (keys.length > 0) {
+                for (let index in keys) {
+                    $("<option />").val(keys[index]).text(keys[index]).appendTo($("select#application_status"));
+                }
+            } else {
+                $("select#application_status").html('<option value="">No Application Status</option>');
+            }
+        },
+        error: function (err) {
+            $("select#application_status").html('<option value="">Error Occured</option>');
+        },
+    });
+}
+
+function searchLoanApplications() {
+    $('#searchButton').html('<i class="fa fa-spinner fa-spin"></i> searching...');
+    $('#searchButton').attr('disabled', true);
+
+    var year = $("select#year").val();
+    var start_date = $("input#start_date").val();
+    var end_date = $("input#end_date").val();
+    var gender = $("select#gender").val();
+    var account_no = $("input#account_no").val();
+    var others = $("input#others").val();
+    var client_account_status = $("select#status").val();
+    var client_name = $("input#client_name").val();
+    var application_code = $("input#application_code").val();
+    var branch_id = $("select#branch_id").val();
+    var staff_id = $("select#staff_id").val();
+    var application_level = $("select#application_level").val();
+    var application_action = $("select#application_action").val();
+    var application_status = $("select#application_status").val();
+    var start_amount_applied = $("input#start_amount_applied").val();
+    var end_amount_applied = $("input#end_amount_applied").val();
+
+    // JS  Disbursed data objects
+    var disbursedObjects = {
+        year: year,
+        start_date: start_date,
+        end_date: end_date,
+        gender: gender,
+        account_no: account_no,
+        others: others,
+        client_account_status: client_account_status,
+        client_name: client_name,
+        application_code: application_code,
+        branch_id: branch_id,
+        staff_id: staff_id,
+        application_level: application_level,
+        application_action: application_action,
+        application_status: application_status,
+        start_amount_applied: start_amount_applied,
+        end_amount_applied: end_amount_applied,
+    };
+
+    // JS  Approved data objects
+    var approvedObjects = {
+        year: year,
+        start_date: start_date,
+        end_date: end_date,
+        gender: gender,
+        account_no: account_no,
+        others: others,
+        client_account_status: client_account_status,
+        client_name: client_name,
+        application_code: application_code,
+        branch_id: branch_id,
+        staff_id: staff_id,
+        application_level: application_level,
+        application_action: application_action,
+        application_status: application_status,
+        start_amount_applied: start_amount_applied,
+        end_amount_applied: end_amount_applied,
+    };
+
+    // JS  Total loan applications data objects
+    var loanApplications = {
+        year: year,
+        start_date: start_date,
+        end_date: end_date,
+        gender: gender,
+        account_no: account_no,
+        others: others,
+        client_account_status: client_account_status,
+        client_name: client_name,
+        application_code: application_code,
+        branch_id: branch_id,
+        staff_id: staff_id,
+        application_level: application_level,
+        application_action: application_action,
+        application_status: application_status,
+        start_amount_applied: start_amount_applied,
+        end_amount_applied: end_amount_applied,
+    };
+
+
+
+    var url = baseURL + "/client/reports/view/report/applications";
+    // ajax adding data to database
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: $('#form').serialize(),
+        dataType: "JSON",
+        beforeSend: function () {
+            $("#loan_applications_counter").html('<div class="text-center">' + '<i class="fa fa-spinner fa-pulse fa-4x fa-fw"></i></div>');
+            // load the spinner for loan applications table
+            $("#loan_applications_table").html('<div class="text-center">' + '<i class="fa fa-spinner fa-pulse fa-4x fa-fw"></i></div>');
+        },
+        success: function (results) {
+
+            loanApplicationsChartsReport(disbursedObjects, approvedObjects, loanApplications);
+            // loan application counter
+            var loanApplicationsCounterDataTable =
+                '<div class="table-responsive"><table id="applicationCounter" class="table table-sm table-striped table-hover"' +
+                'cellspacing="0" width="100%"><tbody></tbody>' +
+                '<tfoot>' +
+                '<tr>' +
+                '<th>Total Loan Applications</th>' +
+                '<th>' + results.yearlytotalpending + '</th>' +
+                '<th>' + results.yearlytotalprocessing + '</th>' +
+                '<th>' + results.yearlytotaldeclined + '</th>' +
+                '<th>' + results.yearlytotalapproved + '</th>' +
+                '<th>' + results.yearlytotaldisbursed + '</th>' +
+                '<th>' + results.yearlytotalcancelled + '</th>' +
+                '<th>' + results.yearlytotalapplications + '</th>' +
+                '</tr>' +
+                '</tfoot></table></div>';
+
+            $("#loan_applications_counter").html(loanApplicationsCounterDataTable);
+
+            $("#applicationCounter").DataTable({
+                data: results.loanapplicationscounter,
+                bPaginate: true,
+                bLengthChange: true,
+                language: {
+                    paginate: {
+                      next: '<i class="fa-solid fa-angle-right"></i>',
+                      previous: '<i class="fa-solid fa-angle-left"></i>',
+                    },
+                    processing: "<img src='/assets/dist/img/6.gif' height=50px width=50px>"
+                },
+                pageLength: 25,
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100],
+                ],
+                bFilter: true,
+                responsive: true,
+                bInfo: true,
+                bAutoWidth: true,
+                columns: [
+                    { title: "Year - Month" },
+                    { title: "Number of Pending Applictions" },
+                    { title: "Number of Processing Applictions" },
+                    { title: "Number of Declined Applictions" },
+                    { title: "Number of Approved Applictions" },
+                    { title: "Number of Disbursed Applictions" },
+                    { title: "Number of Cancelled Applictions" },
+                    { title: "Total Loan Applications" }
+                ],
+                // dom: "lBfrtip",
+                // buttons: ["copy", "csv", "excel", "pdf", "print"],
+                dom:
+                    "<'row'<'col-md-2'l><'col-md-6'B><'col-md-4'f>>" +
+                    "<'row'<'col-md-12'tr>>" +
+                    "<'row'<'col-md-5'i><'col-md-7'p>>",
+                buttons: buttonsConfig,
+            });
+
+            // loan applications information
+            var loanApplicationDataTable =
+                '<div class="table-responsive"><table id="loanApplicationsTable" class="table table-sm table-striped table-hover"' +
+                'cellspacing="0" width="100%"><tbody></tbody>' +
+                '</table></div>';
+
+            $("#loan_applications_table").html(loanApplicationDataTable);
+
+            $("#loanApplicationsTable").DataTable({
+                data: results.loanapplications,
+                bPaginate: true,
+                bLengthChange: true,
+                language: {
+                    paginate: {
+                      next: '<i class="fa-solid fa-angle-right"></i>',
+                      previous: '<i class="fa-solid fa-angle-left"></i>',
+                    },
+                    processing: "<img src='/assets/dist/img/6.gif' height=50px width=50px>"
+                },
+                pageLength: 25,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, 500, -1],
+                    [10, 25, 50, 100, 250, 500, "All"],
+                ],
+                bFilter: true,
+                bInfo: true,
+                responsive: true,
+                bAutoWidth: true,
+                columns: [
+                    { title: "S.No", "width": "4%" },
+                    { title: "Application Date" },
+                    { title: "Code" },
+                    { title: "Client" },
+                    { title: "Account Number" },
+                    { title: "Loan Product" },
+                    { title: "Principal" },
+                    { title: "Interest" },
+                    { title: "Status" },
+                ],
+                // dom: "lBfrtip",
+                // buttons: ["copy", "csv", "excel", "pdf", "print"],
+                dom:
+                    "<'row'<'col-md-2'l><'col-md-6'B><'col-md-4'f>>" +
+                    "<'row'<'col-md-12'tr>>" +
+                    "<'row'<'col-md-5'i><'col-md-7'p>>",
+                buttons: buttonsConfig,
+
+                // set column definition initialisation properties.
+                "columnDefs": [
+                    {
+                        "targets": [0], //first column
+                        "orderable": false    //set not orderable
+                    },
+                    {
+                        "targets": [8], //last column
+                        "orderable": false
+                    }
+
+                ],
+            });
+
+
+
+            $('#searchButton').html('<i class="fa fa-search fa-fw"></i>');
+            $('#searchButton').attr('disabled', false);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            $('#searchButton').html('<i class="fa fa-search fa-fw"></i>');
+            $('#searchButton').attr('disabled', false);
+
+        }
+    });
+}
+
+function monthlyTotalLoanApplication(data) {
+    const total = [];
+    $.ajax({
+        url: "/client/reports/view/report/applications",
+        async: false,
+        type: "POST",
+        dataType: "JSON",
+        data: {
+            entry_status: data.entry_status,
+            year: data.year,
+            start_date: data.start_date,
+            end_date: data.end_date,
+            gender: data.gender,
+            account_no: data.account_no,
+            others: data.others,
+            client_account_status: data.client_account_status,
+            client_name: data.client_name,
+            application_code: data.application_code,
+            branch_id: data.branch_id,
+            staff_id: data.staff_id,
+            application_level: data.application_level,
+            application_action: data.application_action,
+            application_status: data.application_status,
+            start_amount_applied: data.start_amount_applied,
+            end_amount_applied: data.end_amount_applied
+        },
+        success: function (data) {
+            if (data.monthlytotalloanapplications.length > 0) {
+                data.monthlytotalloanapplications.forEach(function (value, index) {
+                    total.push(value);
+                });
+                // for (let index in data.monthlytotalloanapplications) {
+                //   const element = data.monthlytotalloanapplications[index];
+                //   total.push(element)
+
+                // }
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            Swal.fire(textStatus, errorThrown, "error");
+        },
+    });
+
+    return total;
+}
